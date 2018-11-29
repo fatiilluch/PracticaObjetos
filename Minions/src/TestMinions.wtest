@@ -31,4 +31,4 @@ describe "Parcial Minions 2014"
 	{
 		assert.that(pepe.delegarTarea())
 	}
-	
+}
