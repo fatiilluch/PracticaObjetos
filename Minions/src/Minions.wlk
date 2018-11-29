@@ -10,9 +10,12 @@ class Empleado
 	
 	method esMucama() = self.rol().soyMucama()
 	
-	method fuerza() =  self.estamina()/2 + 2 
+	method fuerza() =  self.estamina()/2 + 2
 	
-	method sosSoldado() = self.rol().sosSoldado()
+	method reduciEstamina() 
+	{
+		self.rol().reduciEstamina(self)
+	} 
 }
 
 class ArreglarMaquina
@@ -45,18 +48,13 @@ class DefenderSector
 		{
 			throw new ExcepcionPorNoPoderDefender("El empleado no debe ser mucama y la fuerza debe ser igual o mayor al grado de amenaza")
 		}
-		if(empleado.sosSoldado().negate())
-		{
-			empleado.estamina(-empleado.estamina()/2)
-		}
+		
+		empleado.reduciEstamina()
 	}
 	
-	method dificultad(empleado) =  
-		if (empleado.sosBiclope())
-			return self.amenaza().gradoDeAmenaza() 
-		else
-			return 2 * self.amenaza().gradoDeAmenaza()	
+	method dificultad(empleado) = empleado.multiplicadorDeAmenaza() * self.amenaza().gradoDeAmenaza()
 }
+
 class Amenaza
 {
 	var property gradoDeAmenaza
@@ -76,7 +74,7 @@ class Biclope inherits Empleado
 	
 	override method estamina() = super().min(10)
 	
-	method sosBiclope() = true
+	method multiplicadorDeAmenaza() = 1
 }
 
 class Ciclope inherits Empleado
@@ -87,7 +85,7 @@ class Ciclope inherits Empleado
 	
 	override method fuerza() = super() + self.rol().fuerza()
 	
-	method sosBiclope() = false
+	method multiplicadorDeAmenaza() = 2
 }
 
 class Soldado
@@ -101,9 +99,10 @@ class Soldado
 		self.arma().danioCausante(2)
 	}
 	method soyMucama() = false
-	method soySoldado() = true
 	
 	method fuerza() = self.practica()
+	
+	method reduciEstamina(empleado) {}
 	//Si por algún motivo el soldado cambia de rol, toda la práctica ganada se pierde.
 }
 
@@ -122,9 +121,13 @@ class Obrero
 	}
 	
 	method soyMucama() = false
-	method soySoldado() = false
 	
 	method fuerza() = 0
+	
+	method reduciEstamina(empleado)
+	{
+		empleado.estamina(-empleado.estamina()/2)
+	}
 }
 
 class Mucama
@@ -132,10 +135,15 @@ class Mucama
 	method defender(sector) = false
 	
 	method soyMucama() = true
-	method soySoldado() = false
 	
 	method fuerza() = 0
+	
+	method reduciEstamina(empleado)
+	{
+		empleado.estamina(-empleado.estamina()/2)
+	}
 }
+
 
 
 
