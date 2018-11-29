@@ -6,16 +6,52 @@ class Empleado
 	const property tareas = []
 	const property herramientasPropias = #{}
 	
+	method agregaTarea(nuevaTarea)
+	{
+		self.tareas().add(nuevaTarea)
+	}
+	
 	method hacerTarea() = self.tareas().forEach({tarea => tarea.hacerTarea(self)})
 	
-	method esMucama() = self.rol().soyMucama()
+	method esMucama() = true
 	
 	method fuerza() =  self.estamina()/2 + 2
 	
 	method reduciEstamina() 
 	{
 		self.rol().reduciEstamina(self)
+	}
+	
+	method come(fruta)
+	{
+		self.recuperaEstamina(fruta.puntos())
 	} 
+	
+	method recuperaEstamina(nuevaEstamina)
+	{
+		self.estamina(self.estamina() + nuevaEstamina)
+	}
+	
+	method experiencia() = self.cantidadDeTareasRealizadas() * self.sumarDificultades()
+	
+	method sumarDificultades() = self.tareas().sum({tarea => tarea.dificultad(self)})
+	
+	method cantidadDeTareasRealizadas() = self.tareas().size()	
+}
+
+object banana
+{
+	method puntos() = 10
+}
+
+object manzana
+{
+	method puntos() = 5 
+}
+
+object uva
+{
+	method puntos() = 1.1
 }
 
 class ArreglarMaquina
@@ -24,7 +60,7 @@ class ArreglarMaquina
 	method hacerTarea(empleado) 
 	{
 		empleado.estamina(-maquina.complejidad())
-		return empleado.estamina() == maquina.complejidad() && self.tieneLasHerramientas(empleado)	
+		return empleado.estamina() >= maquina.complejidad() && self.tieneLasHerramientas(empleado)	
 	}
 
 	method tieneLasHerramientas(empleado) = maquina.herramientasParaArreglarla().all({herramienta => empleado.herramientasPropias().contains(herramienta)})
@@ -44,11 +80,10 @@ class DefenderSector
 	
 	method hacerTarea(empleado)
 	{
-		if(empleado.esMucama() && empleado.fuerza() < self.amenaza().gradoDeAmenaza())
+		if(empleado.defender(self).negate() && empleado.fuerza() < self.amenaza().gradoDeAmenaza())
 		{
 			throw new ExcepcionPorNoPoderDefender("El empleado no debe ser mucama y la fuerza debe ser igual o mayor al grado de amenaza")
 		}
-		
 		empleado.reduciEstamina()
 	}
 	
@@ -64,9 +99,37 @@ class ExcepcionPorNoPoderDefender inherits Exception {}
 
 class LimpiarSector
 {
+	var property sectorALimpiar
+	var property nivelDificultad
 	
+	method hacerTarea(empleado) 
+	{
+		if(self.puedeSerLlevadaACabo(empleado))
+		{
+			self.hacerQuePierdaEstamina(empleado)	
+		}
+	}
+	
+	method puedeSerLlevadaACabo(empleado) = self.sectorALimpiar().estamina() < empleado.estamina()
+	
+	method hacerQuePierdaEstamina(empleado) 
+	{
+		if(empleado.rol() != "mucama")
+		{
+			empleado.estamina(empleado.estamina() - self.sectorALimpiar().estamina())			
+		}
+	}	
+	method dificultad(empleado) = self.nivelDificultad()
 }
 
+//Para limpiar se requiere tener al menos 4 puntos de estamina si el sector es grande y 1 en cualquier otro caso 
+object sectorGrande {
+	method estamina() = 4
+}
+
+object otroSector {
+	method estamina() = 1 
+}
 
 class Biclope inherits Empleado
 {
@@ -90,25 +153,20 @@ class Ciclope inherits Empleado
 
 class Soldado
 {
-	var property arma
+	var property danioDelArma
 	var property practica
 	
 	method usaArma(sector) 
 	{
 		self.practica(self.practica() + 1 )
-		self.arma().danioCausante(2)
+		self.danioDelArma(2)
 	}
-	method soyMucama() = false
+	method defender(sector) = true
 	
 	method fuerza() = self.practica()
 	
 	method reduciEstamina(empleado) {}
 	//Si por algún motivo el soldado cambia de rol, toda la práctica ganada se pierde.
-}
-
-class Arma
-{
-	var property danioCausante
 }
 
 class Obrero
@@ -119,14 +177,13 @@ class Obrero
 	{
 		self.cinturon().add(unaHerramienta)
 	}
-	
-	method soyMucama() = false
+	method defender(sector) = true
 	
 	method fuerza() = 0
 	
 	method reduciEstamina(empleado)
 	{
-		empleado.estamina(-empleado.estamina()/2)
+		empleado.estamina(empleado.estamina() - empleado.estamina()/2)
 	}
 }
 
@@ -134,15 +191,20 @@ class Mucama
 {
 	method defender(sector) = false
 	
-	method soyMucama() = true
-	
 	method fuerza() = 0
 	
 	method reduciEstamina(empleado)
 	{
-		empleado.estamina(-empleado.estamina()/2)
+		empleado.estamina(empleado.estamina() - empleado.estamina()/2)
 	}
 }
+
+class Capataz
+{
+	method fuerza() = 0
+	method defender(sector) = true
+}
+
 
 
 
