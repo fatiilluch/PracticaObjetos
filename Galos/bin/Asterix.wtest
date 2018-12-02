@@ -1,0 +1,40 @@
+import Persona.*
+import Pocion.*
+
+describe "Tests Asterix" 
+{
+	var asterix = new Persona(fuerza = 5, resistencia = 100)
+	var pocion = new Pocion()
+	
+	fixture
+	{
+		pocion.agregaIngrediente(new DulceDeLeche())
+		pocion.agregaIngrediente(new Grog())
+		pocion.agregaIngrediente(new HongosSilvestres(hongos = 10))
+	}
+	
+	test "El poder de una persona con fuerza 5 y resistencia 100 es 500" 
+	{
+		assert.equals(asterix.poder(),500)
+	}
+	
+	test "Si una persona con fuerza 5 y resistencia 100 recibe un danio de 200, su resistencia disminuira hasta quedar en 0, por lo tanto queda fuera de combate"
+	{
+		asterix.recibi(200)
+		assert.that(asterix.estasMuerto())
+	}
+	
+	test "Una persona con fuerza 5 y resistencia 100 ingiere una pocion con dulce de leche, grog y hongos, su fuerza sera de 28"  
+	{
+		asterix.toma(pocion)
+		assert.equals(asterix.fuerza(),28)	
+	}
+	
+	test "Una persona con fuerza 5 y resistencia 100 ingiere una pocion con dulce de leche, grog y hongos, su resistencia sera de 50"
+	{
+		asterix.toma(pocion)
+		assert.equals(asterix.resistencia(),50)	
+	}
+	
+	
+}
