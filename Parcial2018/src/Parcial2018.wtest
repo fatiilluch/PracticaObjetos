@@ -1,0 +1,59 @@
+import Eventos.*
+import PersonasYGrupos.*
+import PropuestaYCatalogo.*
+
+describe "group of tests" 
+{
+	var maria = new Persona(personalidad = extrovertido)
+	var juan = new Persona(personalidad = introvertido)
+	var grupito = new Grupo(personas = #{maria,juan})
+	var museo = new Museo()
+	var reunion= new Reunion()
+	var maraton= new Maraton()
+	test "La propuesta" 
+	{
+		assert.equals(museo.felicidadPara(grupito), 30)
+	}
+	
+	test "El catalogo"
+	{
+		var catalogo = new Catalogo(eventos = #{museo,reunion,maraton})
+		assert.equals(catalogo.mejorEventoPara(grupito), museo)
+	}
+	
+	test "El museo"
+	{
+		assert.equals(museo.felicidadPara(grupito), 30)
+	}
+	
+	test "Una Persona asiste a un evento"
+	{
+		juan.asisteA(museo)
+		assert.equals(juan.eventosAsistidos(),#{museo})
+	}
+	
+	test "Alguien no puede asistir dos veces al mismo evento"
+	{	
+		const mensajeDeError = "Ya asististe, no podes volver a ir"
+		
+		const excepcionEsperada = new ExcepcionPorYaHaberAsistido(mensajeDeError)
+		
+		maria.asisteA(museo)
+		
+		const bloqueQueDebeRomper = { maria.asisteA(museo) }
+		
+		assert.throwsExceptionLike(excepcionEsperada,bloqueQueDebeRomper)
+	}
+	
+	test "un Grupo asiste a un evento"
+	{
+		var jose = new Persona(eventosAsistidos = #{}, personalidad = extrovertido)
+		var juana = new Persona(eventosAsistidos = #{reunion}, personalidad = introvertido)
+		var grupo = new Grupo(personas = #{juana, jose})
+		grupo.asisteA(museo)
+		assert.that(juana.yaAsististe(museo))
+		assert.that(jose.yaAsististe(museo))
+	} 
+}
+
+
